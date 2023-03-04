@@ -1,0 +1,18 @@
+version: "3"
+name: "my-app-production"
+services:
+  my-app:
+    container_name: my-app
+    image: my-app
+    build:
+      context: ../../../
+      dockerfile: ci/docker/dockerfiles/Dockerfile
+      target: production
+    ports:
+      - "${APP_DOCKER_HOST_PORT}:${PORT}"
+    volumes:
+      - ../../../:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy

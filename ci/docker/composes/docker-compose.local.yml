@@ -1,0 +1,38 @@
+version: "3"
+name: "my-app-local"
+services:
+  my-app:
+    container_name: my-app-local
+    image: my-app-local
+    build:
+      context: ../../../
+      dockerfile: ci/docker/dockerfiles/Dockerfile
+      target: local
+    ports:
+      - "${APP_DOCKER_HOST_PORT}:${PORT}"
+    volumes:
+      - ../../../:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    container_name: my-app-local-postgres
+    image: my-app-postgres
+    build:
+      context: ../../../
+      dockerfile: ci/docker/dockerfiles/Dockerfile.postgre
+    volumes:
+      - ../../../data/postgres:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_DOCKER_HOST_PORT}:${POSTGRES_PORT}"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DATABASE: "${POSTGRES_DATABASE}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      timeout: 20s
+      interval: 5s
+      start_period: 5s
+      retries: 5
